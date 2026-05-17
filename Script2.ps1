@@ -1,0 +1,1 @@
+'Get-Process | Select-Object -First 5' > Script2.ps1
