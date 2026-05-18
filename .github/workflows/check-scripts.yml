@@ -1,10 +1,18 @@
-name: PowerShell Lint
+name: PowerShell Lint and Release
+
 on: [push]
+
 jobs:
-  lint:
+  lint-and-release:
     runs-on: windows-latest
+    # This permission is required to create a Release
+    permissions:
+      contents: write 
+      
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
       - name: Check PowerShell Syntax
         run: |
           Get-ChildItem -Filter *.ps1 -Recurse | ForEach-Object {
@@ -16,3 +24,23 @@ jobs:
               exit 1
             }
           }
+
+      - name: Create Zip Archive
+        if: success()
+        uses: thedoctor0/zip-release@0.7.6
+        with:
+          type: 'zip'
+          filename: 'Scripts-Bundle.zip'
+          # Don't include the hidden git/github folders in the zip
+          exclusions: '*.git* /*.github/*' 
+
+      - name: Upload to GitHub Release
+        if: success()
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          files: Scripts-Bundle.zip
+          name: Release v${{ github.run_number }}
+          body: |
+            Automated release from workflow run ${{ github.run_number }}.
+            All PowerShell syntax checks passed.
