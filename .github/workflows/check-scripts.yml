@@ -1,5 +1,5 @@
 name: PowerShell Lint
-on: [push] # Run this every time you push code
+on: [push]
 jobs:
   lint:
     runs-on: windows-latest
@@ -8,5 +8,11 @@ jobs:
       - name: Check PowerShell Syntax
         run: |
           Get-ChildItem -Filter *.ps1 -Recurse | ForEach-Object {
-            powershell -Command "scripts/check_syntax.ps1 $_.FullName"
+            Write-Host "Checking: $($_.Name)"
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$null, [ref]$errors)
+            if ($errors) {
+              Write-Error "Syntax error in $($_.Name): $($errors)"
+              exit 1
+            }
           }
