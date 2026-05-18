@@ -1,0 +1,12 @@
+name: PowerShell Lint
+on: [push] # Run this every time you push code
+jobs:
+  lint:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check PowerShell Syntax
+        run: |
+          Get-ChildItem -Filter *.ps1 -Recurse | ForEach-Object {
+            powershell -Command "scripts/check_syntax.ps1 $_.FullName"
+          }
